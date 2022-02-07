@@ -3,7 +3,6 @@ import cors from 'cors';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv'
 import bcrypt from 'bcrypt';
-//import dayjs from "dayjs";
 import joi from 'joi';
 import {v4 as uuid} from "uuid";
 
@@ -18,6 +17,8 @@ mongoClient.connect(() => {
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+const token = uuid();
 
 app.post("/sign-up", async (req, res) => {
     const user = req.body;
@@ -67,7 +68,6 @@ app.post("/sign-in", async (req, res) => {
 
         const isAuthorized = bcrypt.compareSync(password, user.password)
         if(isAuthorized){
-            const token = uuid();
 
             await db.collection("sessions").insertOne({
                 userId: user._id,
@@ -86,10 +86,10 @@ app.post("/sign-in", async (req, res) => {
 
 app.post("/entry", async (req, res) => {
     const transaction = req.body;
-
     const transactionSchema = joi.object({
         value: joi.string().required(),
-        description: joi.string().required()
+        description: joi.string().required(),
+        status: joi.string()
     })
 
     const validation = transactionSchema.validate(transaction);
@@ -99,6 +99,7 @@ app.post("/entry", async (req, res) => {
     }
 
     try{
+
         await db.collection('transactions').insertOne({ transaction }) 
         res.sendStatus(201);  
     }catch (error){
@@ -108,10 +109,9 @@ app.post("/entry", async (req, res) => {
 });
 
 app.get("/entry", async (req,res) => {
-    const { authorization } = req.header;
+    const { authorization } = req.headers;
     const token = authorization?.replace('Bearer ', '');
     const transactions = await db.collection('transactions').find().toArray();
-  
     if(!token) return res.sendStatus(401);
   
     try{
@@ -120,8 +120,6 @@ app.get("/entry", async (req,res) => {
     if (!session) {
         return res.sendStatus(401);
     }
-  
-    const user = await db.collection("users").findOne({ _id: session.userId })
     
     res.send(transactions);
     }catch (error){
