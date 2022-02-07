@@ -1,6 +1,6 @@
 import express from "express";
 import cors from 'cors';
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv'
 import bcrypt from 'bcrypt';
 //import dayjs from "dayjs";
@@ -83,6 +83,52 @@ app.post("/sign-in", async (req, res) => {
     }
 
 });
+
+app.post("/entry", async (req, res) => {
+    const transaction = req.body;
+
+    const transactionSchema = joi.object({
+        value: joi.string().required(),
+        description: joi.string().required()
+    })
+
+    const validation = transactionSchema.validate(transaction);
+
+    if(validation.error){
+        return res.sendStatus(422);
+    }
+
+    try{
+        await db.collection('transactions').insertOne({ transaction }) 
+        res.sendStatus(201);  
+    }catch (error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
+
+app.get("/entry", async (req,res) => {
+    const { authorization } = req.header;
+    const token = authorization?.replace('Bearer ', '');
+    const transactions = await db.collection('transactions').find().toArray();
+  
+    if(!token) return res.sendStatus(401);
+  
+    try{
+        const session = await db.collection("sessions").findOne({ token });
+              
+    if (!session) {
+        return res.sendStatus(401);
+    }
+  
+    const user = await db.collection("users").findOne({ _id: session.userId })
+    
+    res.send(transactions);
+    }catch (error){
+        console.log(error);
+        res.sendStatus(500)
+    }
+  });
 
 app.listen(5000, () => {
     console.log("Rodando em http://localhost:5000")
