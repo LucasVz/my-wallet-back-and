@@ -22,6 +22,8 @@ app.use(cookieParser());
 
 const token = uuid();
 
+const token = uuid();
+
 app.post("/sign-up", async (req, res) => {
     const user = req.body;
     const passwordHash = bcrypt.hashSync(user.password, 10);
