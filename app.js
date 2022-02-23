@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 import bcrypt from 'bcrypt';
 import joi from 'joi';
 import {v4 as uuid} from "uuid";
+import cookieParser from "cookie-parser"
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ mongoClient.connect(() => {
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 
 const token = uuid();
 
@@ -37,7 +39,8 @@ app.post("/sign-up", async (req, res) => {
     }
 
     try{
-        await db.collection('users').insertOne({ ...user, password: passwordHash }) 
+        await db.collection('users').insertOne({ ...user, password: passwordHash })
+        res.cookie("userData", user);
         res.sendStatus(201);  
     }catch (error){
         console.log(error);
@@ -128,6 +131,6 @@ app.get("/entry", async (req,res) => {
     }
   });
 
-app.listen(5000, () => {
+app.listen(process.env.PORT, () => {
     console.log("Rodando em http://localhost:5000")
 });
