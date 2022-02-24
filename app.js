@@ -128,6 +128,6 @@ app.get("/entry", async (req,res) => {
     }
   });
 
-app.listen(5000, () => {
-    console.log("Rodando em http://localhost:5000")
+app.listen(process.env.PORT, () => {
+    console.log("Rodando em " + process.env.PORT)
 });
