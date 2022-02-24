@@ -2,7 +2,6 @@
   "name": "my-wallet-back-end",
   "type": "module",
   "version": "1.0.0",
-  "description": "",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -30,5 +29,7 @@
     "mongodb": "^4.3.1",
     "nodemon": "^2.0.15",
     "uuid": "^8.3.2"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
